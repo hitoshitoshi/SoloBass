@@ -169,14 +169,5 @@ def add_generated_bass_to_midi(input_midi,
     pm.write(output_midi)
     print("Wrote", output_midi)
 
-
-# ───────────────────────── CLI EXAMPLE ───────────────────────── #
-
 if __name__ == "__main__":
-<<<<<<< HEAD
     add_generated_bass_to_midi("oasis.mid", "oasis_with_generated_bass.mid", temperature=1.0)
-=======
-    input_mid  = "TP.mid"            # Input MIDI file containing the original chord information.
-    output_mid = "TP_with_generated.mid"  # Output file to be created.
-    add_generated_notes_to_midi(input_mid, output_mid, temperature=1.0)
->>>>>>> c85172d11d4521fb01369a673d092f62abc7cc18
