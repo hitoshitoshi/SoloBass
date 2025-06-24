@@ -11,6 +11,7 @@ import os
 import numpy as np
 import pretty_midi
 import tensorflow as tf
+import argparse
 
 import data_preparation
 import models
@@ -111,9 +112,7 @@ def tokens_to_bass_instrument(tokens,
 
 # ───────────────────────── MAIN PIPELINE ───────────────────────── #
 
-def add_generated_bass_to_midi(input_midi,
-                               output_midi,
-                               temperature=1.0):
+def add_generated_bass_to_midi(input_midi, output_midi, temperature=1.0):
     """
     • Extract guitar‑chord array from `input_midi`.
     • Run LSTM step‑by‑step to create a bass token for every frame.
@@ -170,4 +169,12 @@ def add_generated_bass_to_midi(input_midi,
     print("Wrote", output_midi)
 
 if __name__ == "__main__":
-    add_generated_bass_to_midi("oasis.mid", "oasis_with_generated_bass.mid", temperature=1.0)
+    parser = argparse.ArgumentParser(description="Generate a bassline for a given MIDI file.")
+    parser.add_argument('input_midi', type=str, help='Path to the input MIDI file with guitar chords.')
+    parser.add_argument('output_midi', type=str, help='Path to write the output MIDI file.')
+    parser.add_argument('--temperature', type=float, default=1.0,
+                        help='Sampling temperature for note generation.')
+    args = parser.parse_args()
+    add_generated_bass_to_midi(args.input_midi,
+                               args.output_midi,
+                               temperature=args.temperature)

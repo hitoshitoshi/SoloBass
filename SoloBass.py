@@ -3,6 +3,7 @@ import numpy as np
 import mido
 import tensorflow as tf
 import fluidsynth
+import argparse
 
 from config import LOWEST_PITCH, CHORD_VECTOR_SIZE, NOTE_VOCAB_SIZE, REST_TOKEN
 from models import build_unrolled_model, build_single_step_model
@@ -14,7 +15,7 @@ def sample_note(prob_dist, temperature=1.0):
     softmax_dist = exp_dist / np.sum(exp_dist)
     return np.random.choice(range(len(prob_dist)), p=softmax_dist)
 
-def main():
+def main(args):
     WEIGHTS_PATH = "./saved_models/unrolled_lstm.weights.h5"
     
     # 1. Model Setup: Build unrolled model, load weights, then build single-step model and copy weights.
@@ -33,16 +34,35 @@ def main():
 
     # 2. Setup MIDI Input
     input_ports = mido.get_input_names()
-    if input_ports:
-        inport = mido.open_input(input_ports[1])
-    else:
+    if not input_ports:
         print("No MIDI input ports available. Exiting.")
         return
+
+    # If port number is not given, list ports and exit.
+    if args.midi_port is None:
+        print("Available MIDI ports:")
+        for i, port in enumerate(input_ports):
+            print(f"  {i}: {port}")
+        return
+        
+    try:
+        inport = mido.open_input(input_ports[args.midi_port]) # <-- Use arg
+    except IndexError:
+        print(f"Error: MIDI port {args.midi_port} not found.")
+        return
+
 
     # 3. Setup FluidSynth for output.
     fs = fluidsynth.Synth()
     fs.start()
-    sfid = fs.sfload("bass.sf2")
+
+    try:
+        sfid = fs.sfload(args.soundfont) # <-- Use arg
+    except IOError:
+        print(f"Error: Soundfont file not found at {args.soundfont}")
+        fs.delete()
+        return
+
     fs.program_select(0, sfid, 0, 0)
     fs.setting('synth.gain', 1.5)
 
@@ -74,7 +94,7 @@ def main():
             note_input = np.array([[current_note]], dtype=np.int32)
             preds, _, _ = rt_model.predict([note_input, chord_input], verbose=0)
             preds = preds[0]  # shape: (NOTE_VOCAB_SIZE,)
-            next_note = sample_note(preds, temperature=1.0)
+            next_note = sample_note(preds, temperature=args.temperature)
 
             # If next_note is the same as last_played_note, sustain it
             if next_note != last_played_note:
@@ -102,4 +122,12 @@ def main():
         fs.delete()
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Real-time AI bass player.")
+    parser.add_argument('--midi_port', type=int,
+                        help='The index of the MIDI input port to use. Run without this argument to list available ports.')
+    parser.add_argument('--soundfont', type=str, default="bass.sf2",
+                        help='Path to the soundfont file (.sf2).')
+    parser.add_argument('--temperature', type=float, default=1.0,
+                        help='Sampling temperature for note generation (higher is more random).')
+    args = parser.parse_args()
+    main(args)

@@ -3,6 +3,7 @@
 import os
 import numpy as np
 import tensorflow as tf
+import argparse
 
 from config import (
     MIDI_FOLDER,
@@ -10,6 +11,7 @@ from config import (
     BATCH_SIZE,
     EPOCHS,
 )
+
 from data_preparation import build_training_dataset
 from models import build_unrolled_model, build_single_step_model
 
@@ -59,13 +61,15 @@ def main():
     unrolled_model = build_unrolled_model()
     unrolled_model.summary()
 
-    if os.path.exists(WEIGHTS_PATH):
+    if os.path.exists(WEIGHTS_PATH) and not args.force_train:
         # If weights file already exists, skip training
         print(f"Found existing weights at {WEIGHTS_PATH}, skipping training.")
         unrolled_model.load_weights(WEIGHTS_PATH)
     else:
-        # If not, train offline once
-        print("No trained weights found. Training unrolled LSTM model...")
+        if args.force_train:
+            print("Force training enabled. Retraining model...")
+        else:
+            print("No trained weights found. Training unrolled LSTM model...")
         y_notes_expanded = np.expand_dims(y_notes, axis=-1)
         
         unrolled_model.fit(
@@ -99,4 +103,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Train the SoloBass LSTM model.")
+    parser.add_argument(
+        '--force-train',
+        action='store_true',
+        help='Force the model to retrain even if a weights file exists.'
+    )
+    args = parser.parse_args()
+    main(args)
