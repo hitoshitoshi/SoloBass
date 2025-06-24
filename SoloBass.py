@@ -5,7 +5,7 @@ import tensorflow as tf
 import fluidsynth
 import argparse
 
-from config import LOWEST_PITCH, CHORD_VECTOR_SIZE, NOTE_VOCAB_SIZE, REST_TOKEN
+from config import BASS_LOWEST_PITCH, CHORD_VECTOR_SIZE, NOTE_VOCAB_SIZE, REST_TOKEN
 from models import build_unrolled_model, build_single_step_model
 
 def sample_note(prob_dist, temperature=1.0):
@@ -97,11 +97,11 @@ def main(args):
             # 4. Update the chord vector from incoming MIDI messages.
             for msg in inport.iter_pending():
                 if msg.type == 'note_on' and msg.velocity > 0:
-                    idx = msg.note - LOWEST_PITCH
+                    idx = msg.note - BASS_LOWEST_PITCH
                     if 0 <= idx < CHORD_VECTOR_SIZE:
                         chord_vector[idx] = 1.0
                 elif msg.type == 'note_off' or (msg.type == 'note_on' and msg.velocity == 0):
-                    idx = msg.note - LOWEST_PITCH
+                    idx = msg.note - BASS_LOWEST_PITCH
                     if 0 <= idx < CHORD_VECTOR_SIZE:
                         chord_vector[idx] = 0.0
 
@@ -116,11 +116,11 @@ def main(args):
             if next_note != last_played_note:
                 # Turn off the last played note if it's different
                 if last_played_note is not None and last_played_note != REST_TOKEN:
-                    fs.noteoff(0, last_played_note + LOWEST_PITCH)
+                    fs.noteoff(0, last_played_note + BASS_LOWEST_PITCH)
                 
                 # Play new note if it's not a rest
                 if next_note != REST_TOKEN:
-                    midi_pitch = next_note + LOWEST_PITCH
+                    midi_pitch = next_note + BASS_LOWEST_PITCH
                     fs.noteon(0, midi_pitch, 64)
 
                 # Update last played note

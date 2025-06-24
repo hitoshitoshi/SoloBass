@@ -170,8 +170,8 @@ def add_generated_bass_to_midi(input_midi, output_midi, temperature=1.0):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate a bassline for a given MIDI file.")
-    parser.add_argument('input_midi', type=str, help='Path to the input MIDI file with guitar chords.')
-    parser.add_argument('output_midi', type=str, help='Path to write the output MIDI file.')
+    parser.add_argument('--input-midi', type=str, help='Path to the input MIDI file with guitar chords.')
+    parser.add_argument('--output-midi', type=str, help='Path to write the output MIDI file.')
     parser.add_argument('--temperature', type=float, default=1.0,
                         help='Sampling temperature for note generation.')
     args = parser.parse_args()

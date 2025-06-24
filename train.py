@@ -22,7 +22,7 @@ def sample_note(prob_dist, temperature=1.1):
     softmax_dist = exp_dist / np.sum(exp_dist)
     return np.random.choice(range(len(prob_dist)), p=softmax_dist)
 
-def main():
+def main(args):
     ############################################################################
     # 1) Load or Build Dataset
     ############################################################################
