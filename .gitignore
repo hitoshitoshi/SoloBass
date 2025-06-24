@@ -1,1 +1,16 @@
 cached_dataset.npz
+
+# Byte-compiled / optimized / C extensions
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# IDE specific
+.vscode/
+.idea/
