@@ -1,116 +1,105 @@
-# SoloBass: AI Bass Player
+# SoloBass: An AI Bass Player
 
-SoloBass is an AI-powered bass player that listens to guitar chords and generates a matching bassline in real time. It uses a recurrent neural network (LSTM) to learn the relationship between chord progressions and bass melodies from a collection of MIDI files.
+SoloBass is a project that uses a chord-conditioned LSTM (Long Short-Term Memory) network to generate musical basslines. It can be used for both real-time performance and offline processing of MIDI files.
+
+This project analyzes the chords from a guitar track and generates a corresponding bass part note by note.
 
 ## Features
 
-  * **Real-time Performance**: Connect a MIDI keyboard or controller to play chords, and SoloBass will generate and play a bassline live.
-  * **Offline Generation**: Add a generated bassline to an existing MIDI file containing guitar chords.
-  * **Customizable Training**: Train the model on your own collection of MIDI files to create a bass player with a unique style.
+  * **Real-time Generation**: Listens to a live MIDI input for chords and generates a bassline in real-time using a synthesizer.
+  * **Offline Generation**: Takes a MIDI file containing guitar chords and generates a new MIDI file with an added bass track.
+  * **Data Augmentation**: The training process automatically transposes the source MIDI files to create a more robust dataset.
+  * **Configurable**: All major hyperparameters, file paths, and model architecture details are centralized in `config.py` for easy modification.
 
-## How It Works
+## Requirements
 
-The project uses a chord-conditioned Long Short-Term Memory (LSTM) network built with TensorFlow/Keras.
+  * **Python 3.11**
+  * A SoundFont file (`.sf2`) for bass sounds (for real-time mode). A default `bass.sf2` is suggested.
+  * The python packages listed in `requirements.txt`.
 
-1.  **Data Preparation**: The `data_preparation.py` script processes a folder of MIDI files. It extracts guitar and bass tracks, quantizes them into a time-series format, and slices them into windows suitable for training. Guitar parts are converted into a multi-hot vector representing the active notes (chords) at each timestep, while the bass part is converted into a sequence of note tokens.
-2.  **Modeling**: The `models.py` script defines two model architectures:
-      * An **unrolled model** for efficient, stateless training on sequences of data.
-      * A **single-step model** with a stateful LSTM for real-time, step-by-step generation.
-3.  **Training**: The `train.py` script orchestrates the training process. It builds a dataset from your MIDI files (or loads a cached one), trains the unrolled model, and saves the learned weights.
-4.  **Inference**:
-      * For offline testing, `testModel.py` loads the trained weights, processes an input MIDI file's chords, and generates a full bassline, saving the result to a new MIDI file.
-      * For live performance, `SoloBass.py` loads the weights into the stateful model. It listens for MIDI input to update its internal chord representation and uses the model to predict the next bass note, which is then played via FluidSynth.
+## Setup
 
-## Setup & Installation
+1.  **Clone the Repository**
 
-**1. Clone the Repository**
+    ```bash
+    git clone <repository_url>
+    cd <repository_folder>
+    ```
 
-```bash
-git clone <repository-url>
-cd SoloBass
-```
+2.  **Install Dependencies**
 
-**2. Install Python Dependencies**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-Create a virtual environment and install the required packages from `requirements.txt`.
+3.  **Prepare MIDI data**
 
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-pip install -r requirements.txt
-```
+      * Create a folder named `midi_files` (or as configured in `config.py`).
+      * Place MIDI files containing guitar and bass tracks into this folder for training.
 
-The requirements include `tensorflow`, `numpy`, `pretty_midi`, `mido`, `pyfluidsynth`, and `tqdm`.
+4.  **Get a SoundFont**
 
-**3. Install FluidSynth**
+      * For the real-time player (`SoloBass.py`), you will need a SoundFont file (e.g., `bass.sf2`). Download one and place it in the root directory or provide the path via the command line.
 
-The `pyfluidsynth` library requires the FluidSynth software to be installed on your system.
+## How to Use
 
-  * **macOS (via Homebrew):** `brew install fluidsynth`
-  * **Debian/Ubuntu:** `sudo apt-get install fluidsynth`
-  * **Windows:** Download and install from the official [FluidSynth website](https://www.google.com/search?q=https://www.fluidsynth.org/get-started/).
+### Step 1: Train the Model
 
-**4. Download a Soundfont**
-
-You need a SoundFont (`.sf2`) file for audio output. A bass guitar soundfont is recommended. Place it in the project's root directory or provide the path via the command line.
-
-## Usage
-
-### 1\. Data Preparation
-
-Place your training MIDI files (containing both guitar/chord tracks and bass tracks) into the `midi_files/` directory. The scripts identify instruments based on the General MIDI program numbers defined in `data_preparation.py`.
-
-### 2\. Training the Model
-
-Run the training script. This will process the MIDI files, create a `cached_dataset.npz`, and save the trained model weights to `saved_models/unrolled_lstm.weights.h5`.
+First, you must train the LSTM model on your MIDI dataset.
 
 ```bash
 python train.py
 ```
 
-  * Use the `--force-train` flag to retrain the model even if a weights file already exists.
+  * This script will process the files in the `midi_files` directory, create a cached dataset (`cached_dataset.npz`), train the model, and save the learned weights to `./saved_models/unrolled_lstm.weights.h5`.
+  * If you want to retrain the model even if a weights file already exists, use the `--force-train` flag:
+    ```bash
+    python train.py --force-train
+    ```
 
-### 3\. Offline Generation (Create a Bassline for a MIDI file)
+### Step 2 (Option A): Generate a Bassline for a MIDI file
 
-Use the `testModel.py` script to add a bassline to an existing MIDI file.
+Use `testModel.py` to add a generated bassline to an existing MIDI file.
 
-```bash
-python testModel.py <path/to/input_midi.mid> <path/to/output_midi.mid>
-```
-
-  * `--temperature <value>`: Adjust the randomness of the note selection. A higher value (e.g., 1.2) leads to more variation, while a lower value (e.g., 0.8) sticks closer to the model's prediction.
-
-### 4\. Real-Time Performance
-
-Use `SoloBass.py` to start the live AI bass player.
-
-**First, find your MIDI input port:**
+**Usage:**
 
 ```bash
-python SoloBass.py
+python testModel.py <input_midi_path> <output_midi_path> [--temperature <value>]
 ```
 
-This will list the available MIDI ports and their index numbers.
+  * **`input_midi_path`**: Path to the source MIDI file with guitar chords.
+  * **`output_midi_path`**: Path where the new MIDI file with the generated bassline will be saved.
+  * **`--temperature`** (optional): A float value (e.g., 1.0) that controls the randomness of note selection. Higher values lead to more variation. Defaults to 1.0.
 
-**Then, run the script with your chosen port:**
+### Step 2 (Option B): Use the Real-Time Bass Player
 
-```bash
-python SoloBass.py --midi_port <port_index> --soundfont <path/to/bass.sf2>
-```
+Use `SoloBass.py` to launch the real-time AI bass player that listens to your MIDI controller.
 
-  * `--midi_port <index>`: The index of your MIDI controller.
-  * `--soundfont <path>`: Path to your `.sf2` file (defaults to `bass.sf2`).
-  * `--temperature <value>`: Adjust the creativity of the live performance.
+1.  **Find your MIDI port:**
+    Run the script without arguments to list available MIDI input devices and their port numbers.
 
-Now, play chords on your MIDI controller, and SoloBass will accompany you on the bass\!
+    ```bash
+    python SoloBass.py
+    ```
+
+2.  **Run the real-time player:**
+
+    ```bash
+    python SoloBass.py --midi_port <port_number> --soundfont <path_to_sf2> [--temperature <value>]
+    ```
+
+      * **`--midi_port`**: The integer index of your MIDI device from the list generated in the previous step.
+      * **`--soundfont`**: Path to your bass SoundFont file (e.g., `bass.sf2`).
+      * **`--temperature`** (optional): Controls the randomness of note generation. Defaults to 1.0.
+
+    Now, play chords on your MIDI controller, and SoloBass will generate and play a bassline in response\!
 
 ## File Descriptions
 
-  * `SoloBass.py`: Main script for real-time, interactive bassline generation.
-  * `train.py`: Handles the dataset preparation and model training loop.
-  * `testModel.py`: Offline script to generate a bassline for an entire MIDI file.
-  * `models.py`: Contains the Keras/TensorFlow definitions for the LSTM models (both unrolled for training and stateful for real-time use).
-  * `data_preparation.py`: A library of functions for parsing MIDI files, extracting instrument tracks, and quantizing note data into arrays.
-  * `config.py`: A central file for all hyperparameters and settings, such as MIDI pitch ranges, model dimensions, learning rate, and sequence length.
-  * `requirements.txt`: A list of the Python packages required for this project.
-  * `.gitignore`: Specifies files and directories to be ignored by Git, such as the dataset cache and virtual environments.
+  * **`train.py`**: Script to train the neural network on the dataset in `midi_files`.
+  * **`testModel.py`**: Generates a bassline for a given input MIDI file and saves the output.
+  * **`SoloBass.py`**: The main real-time application that listens for MIDI input and plays a generated bassline.
+  * **`data_preparation.py`**: Contains all functions for parsing, quantizing, and preparing MIDI data for training.
+  * **`models.py`**: Defines the Keras/TensorFlow LSTM model architectures, for both training and single-step generation.
+  * **`config.py`**: A centralized file for all hyperparameters, file paths, and constants.
+  * **`requirements.txt`**: A list of all the python dependencies for this project.
