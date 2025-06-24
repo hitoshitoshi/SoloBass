@@ -22,8 +22,8 @@ This project analyzes the chords from a guitar track and generates a correspondi
 1.  **Clone the Repository**
 
     ```bash
-    git clone <repository_url>
-    cd <repository_folder>
+    git clone https://github.com/hitoshitoshi/SoloBass.git
+    cd SoloBass
     ```
 
 2.  **Install Dependencies**
