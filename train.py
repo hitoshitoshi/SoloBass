@@ -53,7 +53,7 @@ def main():
     ############################################################################
     # 2) Train or Load the Unrolled Model Weights
     ############################################################################
-    WEIGHTS_PATH = "unrolled_lstm.weights.h5"
+    WEIGHTS_PATH = "./saved_models/unrolled_lstm.weights.h5"
     
     # Build the unrolled model (same architecture either way)
     unrolled_model = build_unrolled_model()

@@ -21,7 +21,7 @@ from config import (                # keep one source of truth
     BASS_LOWEST_PITCH
 )
 
-WEIGHTS_PATH = "unrolled_lstm.weights.h5"
+WEIGHTS_PATH = "./saved_models/unrolled_lstm.weights.h5"
 
 # ───────────────────────── SAMPLING ───────────────────────── #
 

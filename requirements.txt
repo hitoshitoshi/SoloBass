@@ -1,0 +1,6 @@
+tensorflow
+numpy
+pretty_midi
+mido
+pyfluidsynth
+tqdm

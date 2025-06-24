@@ -15,7 +15,7 @@ def sample_note(prob_dist, temperature=1.0):
     return np.random.choice(range(len(prob_dist)), p=softmax_dist)
 
 def main():
-    WEIGHTS_PATH = "unrolled_lstm.weights.h5"
+    WEIGHTS_PATH = "./saved_models/unrolled_lstm.weights.h5"
     
     # 1. Model Setup: Build unrolled model, load weights, then build single-step model and copy weights.
     unrolled_model = build_unrolled_model()
@@ -42,7 +42,7 @@ def main():
     # 3. Setup FluidSynth for output.
     fs = fluidsynth.Synth()
     fs.start()
-    sfid = fs.sfload("acoustic.sf2")
+    sfid = fs.sfload("bass.sf2")
     fs.program_select(0, sfid, 0, 0)
     fs.setting('synth.gain', 1.5)
 

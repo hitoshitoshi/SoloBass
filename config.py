@@ -28,13 +28,7 @@ NOTE_EMBED_DIM   = 16
 CHORD_HIDDEN_DIM = 16
 LSTM_UNITS       = 64
 
-<<<<<<< HEAD
 # ─────────────——— TRAINING ————───────── #
 BATCH_SIZE   = 32
 EPOCHS       = 15
-=======
-# Training
-BATCH_SIZE = 32
-EPOCHS = 15
->>>>>>> c85172d11d4521fb01369a673d092f62abc7cc18
 LEARNING_RATE = 0.001
