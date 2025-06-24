@@ -38,19 +38,35 @@ def main(args):
         print("No MIDI input ports available. Exiting.")
         return
 
-    # If port number is not given, list ports and exit.
-    if args.midi_port is None:
+    port_index = args.midi_port
+
+    # If a port is not specified, list available ports and prompt the user to choose.
+    if port_index is None:
         print("Available MIDI ports:")
         for i, port in enumerate(input_ports):
             print(f"  {i}: {port}")
-        return
         
+        while True:
+            try:
+                choice = input(f"Please choose a port number (0-{len(input_ports)-1}): ")
+                port_index = int(choice)
+                if 0 <= port_index < len(input_ports):
+                    break
+                else:
+                    print("Invalid number. Please select a number from the list.")
+            except ValueError:
+                print("Invalid input. Please enter a number.")
+    
     try:
-        inport = mido.open_input(input_ports[args.midi_port]) # <-- Use arg
+        port_name = input_ports[port_index]
+        inport = mido.open_input(port_name)
+        print(f"Listening for MIDI on: '{port_name}'")
     except IndexError:
-        print(f"Error: MIDI port {args.midi_port} not found.")
+        print(f"Error: MIDI port {port_index} not found.")
         return
-
+    except Exception as e:
+        print(f"Error opening port: {e}")
+        return
 
     # 3. Setup FluidSynth for output.
     fs = fluidsynth.Synth()
@@ -125,7 +141,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Real-time AI bass player.")
     parser.add_argument('--midi_port', type=int,
                         help='The index of the MIDI input port to use. Run without this argument to list available ports.')
-    parser.add_argument('--soundfont', type=str, default="bass.sf2",
+    parser.add_argument('--soundfont', type=str, default="./soundfonts/bass.sf2",
                         help='Path to the soundfont file (.sf2).')
     parser.add_argument('--temperature', type=float, default=1.0,
                         help='Sampling temperature for note generation (higher is more random).')
